@@ -1,0 +1,23 @@
+apiVersion: tekton.dev/v1alpha1
+kind: PipelineResource
+metadata:
+  name: golang-resource
+  namespace: nanjun
+spec:
+  type: git
+  params:
+  - name: revision
+    value: dev
+  - name: url
+    value: https://github.com/fishingfly/golang-test
+---
+apiVersion: tekton.dev/v1alpha1
+kind: PipelineResource
+metadata:
+  name: harbor-image
+  namespace: nanjun
+spec:
+  type: image
+  params:
+    - name: url
+      value: registry.nanjun/test/golang-test:gin

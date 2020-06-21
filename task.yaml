@@ -1,0 +1,51 @@
+apiVersion: tekton.dev/v1alpha1
+kind: Task
+metadata:
+  name: build-and-push
+  namespace: nanjun
+spec:
+  inputs:
+    resources:
+      - name: golang-resource
+        type: git
+    params:
+      - name: dockerfile-path
+        type: string
+        default: $(inputs.resources.golang-resource.path)/
+        description: dockerfile path
+      
+  outputs:
+    resources:
+      - name: builtImage
+        type: image
+  steps:
+    - name: build-with-golangenv
+      image: golang
+      script: |
+        #!/usr/bin/env sh
+        cd $(inputs.resources.golang-resource.path)/
+        export GO111MODULE=on 
+        export GOPROXY=https://goproxy.io
+        env
+        go mod download
+        go build -o main .
+        ls
+    - name: image-build-and-push
+      image: docker:stable
+      script: |
+        #!/usr/bin/env sh
+        docker login registry.nanjun
+        docker build --rm --label buildNumber=1 -t $(outputs.resources.builtImage.url) $(inputs.params.dockerfile-path)
+        docker push  $(outputs.resources.builtImage.url)
+      volumeMounts:
+      - name: docker-sock
+        mountPath: /var/run/docker.sock
+      - name: hosts
+        mountPath: /etc/hosts
+  volumes:
+    - name: docker-sock
+      hostPath:
+        path: /var/run/docker.sock
+    - name: hosts
+      hostPath:
+        path: /etc/hosts

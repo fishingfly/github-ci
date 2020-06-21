@@ -1,0 +1,19 @@
+apiVersion: tekton.dev/v1alpha1
+kind: TaskRun
+metadata:
+  name: build-and-push-from-github
+  namespace: nanjun
+spec:
+  inputs:
+    resources:
+      - name: golang-resource
+        resourceRef:
+          name: golang-resource
+  outputs:
+    resources:
+      - name: builtImage
+        resourceRef:
+          name: harbor-image
+  taskRef:
+    name: build-and-push
+  serviceAccountName: sa
